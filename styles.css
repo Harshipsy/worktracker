@@ -1,0 +1,65 @@
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.cal-box {
+  padding: 10px;
+  text-align: center;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  border: 1px solid #ccc;
+}
+
+/* Colors */
+.yellow { background: #fff3cd; }
+.grey   { background: #e9ecef; }
+.red    { background: #f8d7da; }
+.green  { background: #d4edda; }
+.orange { background: #ffe5b4; }
+.leave  { background: #cfe2ff; }
+
+.work-block {
+    line-height: 1.4;
+}
+
+.section-line {
+    margin: 6px 0;
+    border-top: 1px dashed #bbb;
+}
+
+.employee-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 3px;
+}
+
+.employee-card {
+    border: 1px solid #d0d0d0;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 20px;
+    background: #ffffff;
+    width: 100%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* Small centered Leave box */
+.leave-box {
+    text-align: center;
+    padding: 20px 0;
+}
+
+.leave-pill {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+    padding: 6px 14px;
+    font-weight: 600;
+    border-radius: 30px;
+    font-size: 14px;
+}
+

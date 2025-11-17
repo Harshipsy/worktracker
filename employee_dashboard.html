@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- SCORECARD BOX -->
+<div class="alert alert-primary d-flex justify-content-between align-items-center">
+
+    <strong>Your Score: {{ score_pct }}%</strong>
+
+    <form method="GET" class="m-0 d-flex gap-2">
+        <input type="month" name="score_month" value="{{ score_month }}"
+               class="form-control form-control-sm"
+               onchange="this.form.submit()">
+
+        <input type="hidden" name="date" value="{{ sel_date }}">
+    </form>
+
+</div>
+<style>
+.card-box {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+.section-label { font-weight: 600; margin-bottom:6px; }
+.work-input { margin-bottom:6px; }
+
+/* --- PREMIUM CALENDAR LOOK --- */
+.calendar-box {
+    background: linear-gradient(135deg, #ffffff, #f8f9ff);
+    border: 1px solid #d9d9d9;
+    padding: 18px;         /* reduced from 25px */
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+
+/* Weekday header */
+.weekdays-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;       /* reduced from 8px */
+    font-weight: 700;
+    text-align: center;
+    font-size: 14px;          /* slightly smaller */
+}
+
+
+/* Calendar grid */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;          /* reduced from 12px */
+    margin-top: 10px;
+}
+
+
+.day-cell {
+    padding: 10px;              /* reduced from 14px */
+    border-radius: 10px;        /* slightly smaller */
+    text-align: center;
+    font-weight: 600;
+    font-size: 14px;            /* reduced from 16px */
+    border: 1px solid #d1d1d1;
+    transition: 0.2s ease-in-out;
+}
+
+
+/* Hover effect */
+.day-cell:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    cursor: pointer;
+}
+
+/* Sunday highlight */
+.day-sunday {
+    background: #cce6ff !important;
+    border-color: #99ccff !important;
+    color: #004d80 !important;
+}
+
+/* Today */
+.day-today {
+    border: 3px solid #0044ff !important;
+    box-shadow: 0 0 12px rgba(0, 102, 255, 0.6);
+    transform: scale(1.12);
+    /* REMOVE BACKGROUND, REMOVE COLOR OVERRIDE */
+}
+
+
+
+/* COLORS */
+.day-yellow { background:#ffe066; color:#5c4300; border-color:#ffcc33; }
+.day-orange { background:#ff9933; color:#4d2600; border-color:#ff8000; }
+.day-red    { background:#ff6666; color:#4d0000; border-color:#ff3333;}
+.day-green  { background:#66d98b; color:#003300; border-color:#33cc6a;}
+.day-grey   { background:#e6e6e6; color:#595959; border-color:#cccccc;}
+.day-leave {
+    background: #cce6ff !important;
+    border-color: #99ccff !important;
+    color: #004d80 !important;
+    font-weight: 700;
+}
+
+</style>
+
+<!-- CALENDAR -->
+<div class="calendar-box mb-4">
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button class="btn btn-outline-primary btn-sm" id="prevMonth">← Prev</button>
+
+        <h5 id="monthTitle" class="fw-bold m-0">
+            {{ sel_date.strftime('%B %Y') }}
+        </h5>
+
+        <button class="btn btn-outline-primary btn-sm" id="nextMonth">Next →</button>
+    </div>
+
+    <div id="calendarContainer"></div>
+</div>
+
+
+<!-- WORK ENTRY AREA -->
+<div class="card-box">
+
+    <h4 class="fw-bold mb-3">Work for {{ sel_date }}</h4>
+
+
+
+{% if lock and lock.leave %}
+    <div class="alert alert-info">You marked leave for this date.</div>
+
+{% elif lock and not lock.leave %}
+    <div class="alert alert-success">Work already submitted for this date.</div>
+
+    <!-- SHOW WORK IN READ-ONLY FORMAT -->
+    <div class="mt-3">
+
+        {% set completed = items | selectattr('section','equalto','completed') | list %}
+        {% if completed %}
+            <h5><b>Completed</b></h5>
+            <ol>
+                {% for i in completed %}
+                    <li>{{ i.content }}</li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+
+        {% set under = items | selectattr('section','equalto','underprocess') | list %}
+        {% if under %}
+            <h5><b>Under Process</b></h5>
+            <ol>
+                {% for i in under %}
+                    <li>{{ i.content }}</li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+
+        {% set misc = items | selectattr('section','equalto','misc') | list %}
+        {% if misc %}
+            <h5><b>Misc</b></h5>
+            <ol>
+                {% for i in misc %}
+                    <li>{{ i.content }}</li>
+                {% endfor %}
+            </ol>
+        {% endif %}
+    </div>
+
+{% elif sel_date > today %}
+    <div class="alert alert-danger">Submission window closed for this future date.</div>
+
+{% else %}
+    <!-- FORM FOR ENTERING NEW WORK -->
+    <form id="workForm" method="POST" action="{{ url_for('submit', date_str=sel_date.isoformat()) }}">
+
+        <div class="mb-3">
+            <div class="section-label">Completed</div>
+            <input name="completed[]" class="form-control work-input auto-add" placeholder="Type & Enter">
+        </div>
+
+        <div class="mb-3">
+            <div class="section-label">Under Process</div>
+            <input name="underprocess[]" class="form-control work-input auto-add" placeholder="Type & Enter">
+        </div>
+
+        <div class="mb-3">
+            <div class="section-label">Misc</div>
+            <input name="misc[]" class="form-control work-input auto-add" placeholder="Type & Enter">
+        </div>
+
+        <button type="button" id="submitBtn" class="btn btn-primary">Submit</button>
+        <a href="{{ url_for('mark_leave', date_str=sel_date.isoformat()) }}" class="btn btn-warning">Mark Leave</a>
+
+    </form>
+{% endif %}
+
+
+</div>
+
+
+<!-- CONFIRM MODAL -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Confirm?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        Once submitted, this day cannot be changed.<br>
+        Are you sure?
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="confirmSubmit" class="btn btn-primary">Confirm</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    /* =============================
+       PREMIUM CALENDAR
+    ============================== */
+
+    let currentYear = {{ sel_date.year }};
+    let currentMonth = {{ sel_date.month - 1 }};
+
+    function updateMonthTitle() {
+        const dt = new Date(currentYear, currentMonth, 1);
+        document.getElementById("monthTitle").textContent =
+            dt.toLocaleString("en-IN", { month: "long", year: "numeric" });
+    }
+
+    function loadCalendarA(year, month) {
+        const container = document.getElementById("calendarContainer");
+
+        const first = new Date(year, month, 1);
+        const last  = new Date(year, month + 1, 0);
+
+        // WEEKDAY HEADER
+        container.innerHTML = `
+            <div class="weekdays-grid">
+                <div>Mon</div><div>Tue</div><div>Wed</div>
+                <div>Thu</div><div>Fri</div><div>Sat</div>
+                <div class="text-primary">Sun</div>
+            </div>
+        `;
+
+        const grid = document.createElement("div");
+        grid.className = "calendar-grid";
+
+        const start = `${year}-${String(month+1).padStart(2,'0')}-01`;
+        const end   = `${year}-${String(month+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')}`;
+
+        fetch(`/calendar_status?start=${start}&end=${end}`)
+        .then(r => r.json())
+        .then(colors => {
+
+            let jsDay = first.getDay() === 0 ? 7 : first.getDay();
+            for (let i = 1; i < jsDay; i++) {
+                let e = document.createElement("div");
+                e.style.visibility = "hidden";
+                grid.appendChild(e);
+            }
+
+            for (let d = 1; d <= last.getDate(); d++) {
+
+                let key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                let color = colors[key] || "grey";
+
+                let cell = document.createElement("div");
+                cell.className = `day-cell day-${color}`;
+                cell.textContent = d;
+
+                // Today border
+                if (key === "{{ today.isoformat() }}") {
+                    cell.classList.add("day-today");
+                }
+
+                // Sunday (blue)
+                let w = new Date(year, month, d).getDay();
+                if (w === 0) cell.classList.add("day-sunday");
+
+                cell.onclick = () => window.location = `/?date=${key}`;
+                grid.appendChild(cell);
+            }
+
+            container.appendChild(grid);
+        });
+    }
+
+    // Prev / Next buttons
+    document.getElementById("prevMonth").onclick = () => {
+        currentMonth--;
+        if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+        updateMonthTitle();
+        loadCalendarA(currentYear, currentMonth);
+    };
+
+    document.getElementById("nextMonth").onclick = () => {
+        currentMonth++;
+        if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+        updateMonthTitle();
+        loadCalendarA(currentYear, currentMonth);
+    };
+
+    updateMonthTitle();
+    loadCalendarA(currentYear, currentMonth);
+
+
+
+    /* =============================
+       Auto-add inputs
+    ============================== */
+    document.addEventListener("keydown", function (e) {
+        if (e.target.classList.contains("auto-add") && e.key === "Enter") {
+            e.preventDefault();
+            const newInp = e.target.cloneNode();
+            newInp.value = "";
+            e.target.parentNode.appendChild(newInp);
+            newInp.focus();
+        }
+    });
+
+
+    /* =============================
+       Submit modal
+    ============================== */
+    const sb = document.querySelector("#submitBtn");
+    const modalElement = document.querySelector("#confirmModal");
+
+    if (sb && modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+
+        sb.addEventListener("click", () => modal.show());
+
+        document.querySelector("#confirmSubmit").addEventListener("click", () => {
+
+            document.querySelectorAll("input.auto-add").forEach(i => {
+                if (!i.value.trim()) i.remove();
+            });
+
+            document.querySelector("#workForm").submit();
+        });
+    }
+
+});
+</script>
+
+{% endblock %}

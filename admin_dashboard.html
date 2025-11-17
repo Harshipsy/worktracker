@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.employee-card {
+    border: 1px solid #d0d0d0;
+    border-radius: 10px;
+    padding: 18px;
+    margin-bottom: 18px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+.employee-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.employee-name {
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.status-pill {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* Status Colors */
+.status-late {
+    background: #dc3545;
+    color: white;
+}
+.status-not {
+    background: #ffeeba;
+    color: #856404;
+    border: 1px solid #ffe8a1;
+}
+.status-leave {
+    background: #D1ECF1;
+    color: #0c5460;
+    border: 1px solid #BEE5EB;
+}
+
+.section-title {
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+.section-line {
+    border-top: 1px solid #eee;
+    margin: 12px 0;
+}
+</style>
+
+
+<!-- Title + Date Selector -->
+<div class="d-flex justify-content-between mb-3">
+    <h3 class="fw-bold">Admin — Work Sheet ({{ selected_date }})</h3>
+
+    <form method="get" class="d-flex gap-2">
+        <label class="fw-semibold mt-1">Select date</label>
+        <input type="date"
+               name="date"
+               value="{{ selected_date.isoformat() }}"
+               min="{{ min_date }}"
+               max="{{ max_date }}"
+               class="form-control form-control-sm">
+        <button class="btn btn-primary btn-sm">Show</button>
+    </form>
+</div>
+
+
+<!-- EMPLOYEE CARDS -->
+{% for row in summary %}
+<div class="employee-card">
+
+    <!-- Header -->
+    <div class="employee-header">
+        <div>
+            <div class="employee-name">{{ row.name }}</div>
+
+            {% if row.submitted_on %}
+                <div class="text-muted small">
+                    Submitted: {{ row.submitted_on.strftime('%Y-%m-%d %H:%M:%S') }}
+                </div>
+            {% else %}
+                <div class="text-muted small">-</div>
+            {% endif %}
+        </div>
+
+        <div>
+            {% if row.leave %}
+                <span class="status-pill status-leave">On Leave</span>
+            {% elif not row.submitted_on %}
+                <span class="status-pill status-not">Not Submitted</span>
+            {% elif row.late %}
+                <span class="status-pill status-late">Late Submission</span>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ONLY SHOW SECTIONS IF SUBMITTED & NOT LEAVE -->
+    {% if row.submitted_on and not row.leave %}
+
+        {% set completed = row.work_items | selectattr("section","equalto","completed") | list %}
+        {% set under = row.work_items | selectattr("section","equalto","underprocess") | list %}
+        {% set misc = row.work_items | selectattr("section","equalto","misc") | list %}
+
+        {% if completed %}
+        <div class="section-title">Completed</div>
+        <ol class="mt-2">
+            {% for it in completed %}
+            <li>{{ it.content }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if under %}
+        <div class="section-line"></div>
+        <div class="section-title">Under Process</div>
+        <ol class="mt-2">
+            {% for it in under %}
+            <li>{{ it.content }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+        {% if misc %}
+        <div class="section-line"></div>
+        <div class="section-title">Misc</div>
+        <ol class="mt-2">
+            {% for it in misc %}
+            <li>{{ it.content }}</li>
+            {% endfor %}
+        </ol>
+        {% endif %}
+
+    {% endif %}
+
+</div>
+{% endfor %}
+
+{% endblock %}

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Work Tracker</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body { background: #f5f5f5; }
+        .navbar-custom { background: #0d6efd; }
+        .navbar-custom .nav-link,
+        .navbar-custom .navbar-brand,
+        .navbar-custom .text-light { color: white !important; }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-custom mb-4">
+    <div class="container-fluid">
+
+        <a class="navbar-brand fw-bold" href="#">Work Tracker</a>
+
+        <div class="d-flex align-items-center gap-2">
+
+            {% if current_user.is_authenticated %}
+
+                {% if current_user.is_admin %}
+                    <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-light btn-sm">Admin Dashboard</a>
+                    <a href="{{ url_for('admin_employees') }}" class="btn btn-outline-light btn-sm">Add / View Employees</a>
+                    <a href="{{ url_for('export') }}" class="btn btn-outline-light btn-sm">Export Data</a>
+    		    <a href="{{ url_for('admin_scorecard') }}" class="btn btn-outline-light btn-sm">Scorecard</a>
+                {% else %}
+                    <a href="{{ url_for('export') }}" class="btn btn-outline-light btn-sm">Export My Work</a>
+                {% endif %}
+
+                <span class="text-light fw-semibold">{{ current_user.fullname }}</span>
+
+                <a href="{{ url_for('logout') }}" class="btn btn-light btn-sm">Logout</a>
+
+            {% endif %}
+        </div>
+
+    </div>
+</nav>
+
+<div class="container mb-5">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for cat, msg in messages %}
+        <div class="alert alert-{{ cat }} alert-dismissible fade show">
+            {{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

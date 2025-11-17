@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h3>Work on {{ date }}</h3>
+
+{% if lock %}
+    {% if lock.leave %}
+        <div class="alert alert-info">Was on Leave</div>
+    {% else %}
+        <div class="alert alert-info">
+            Submitted at {{ lock.submitted_on.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S') }}
+        </div>
+    {% endif %}
+{% endif %}
+
+<hr>
+
+<h5>Completed</h5>
+<ul>
+{% for i in items if i.section == "completed" %}
+  <li>{{ i.content }}</li>
+{% endfor %}
+</ul>
+
+<h5>Under Process</h5>
+<ul>
+{% for i in items if i.section == "underprocess" %}
+  <li>{{ i.content }}</li>
+{% endfor %}
+</ul>
+
+<h5>Misc</h5>
+<ul>
+{% for i in items if i.section == "misc" %}
+  <li>{{ i.content }}</li>
+{% endfor %}
+</ul>
+
+{% endblock %}

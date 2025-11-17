@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+.export-box {
+    background:#fff;
+    border-radius:10px;
+    border:1px solid #ddd;
+    padding:25px;
+    max-width:600px;
+    margin:auto;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);
+}
+</style>
+
+<div class="export-box">
+
+    <h4 class="fw-bold text-center mb-3">Export Work Records</h4>
+
+    <form method="POST">
+
+        {% if current_user.is_admin %}
+        <div class="mb-3">
+            <label class="fw-semibold">Employee</label>
+            <select name="user_id" class="form-select">
+                <option value="all">All Employees</option>
+                {% for e in employees %}
+                <option value="{{ e.id }}">{{ e.fullname }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <div class="alert alert-info">Exporting your own work entries.</div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="fw-semibold">Start Date</label>
+                <input type="date" name="start" class="form-control" required>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label class="fw-semibold">End Date</label>
+                <input type="date" name="end" class="form-control" required>
+            </div>
+        </div>
+
+        <button class="btn btn-primary w-100 mt-2">Download Excel</button>
+
+    </form>
+
+</div>
+
+{% endblock %}

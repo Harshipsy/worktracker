@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h4>Scorecard — {{ month_title }}</h4>
+
+    <form method="GET" class="d-flex align-items-center" style="gap:10px;">
+        <label class="mb-0">Select month</label>
+        <input type="month" name="month" value="{{ month_val }}" class="form-control form-control-sm" />
+        <button class="btn btn-sm btn-primary" type="submit">Go</button>
+    </form>
+</div>
+
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-sm table-hover align-middle">
+            <thead>
+                <tr>
+                    <th>Employee</th>
+                    <th>Score</th>
+                    <th>On-time</th>
+                    <th>Late</th>
+                    <th>Leave</th>
+                    <th>Not submitted</th>
+                    <th>Working days (excl Sundays)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in rows %}
+                <tr>
+                    <td><strong>{{ r.fullname }}</strong><br><small class="text-muted">{{ r.username }}</small></td>
+                    <td><strong>{{ r.pct }}%</strong></td>
+                    <td>{{ r.on_time }}</td>
+                    <td>{{ r.late }}</td>
+                    <td>{{ r.leave }}</td>
+                    <td>{{ r.not_submitted }}</td>
+                    <td>{{ r.denom }}</td>
+                </tr>
+            {% else %}
+                <tr><td colspan="7" class="text-center">No employees found.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
